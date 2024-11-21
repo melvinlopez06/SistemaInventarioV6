@@ -11,16 +11,16 @@ namespace SistemaInventarioV6.AccesoDatos.Repositorio.IRepositorio
     {
         //encerrados en <TASK> para trabajarlos como metodos asincronos
 
-        Task <T> obtener(int id);
+        Task <T> Obtener(int id);
 
-        Task <IEnumerable<T>> obtenerTodos(
+        Task <IEnumerable<T>> ObtenerTodos(
             Expression<Func<T, bool>> filtro = null,
             Func<IQueryable<T> , IOrderedQueryable<T>> orderBy =null,
             string incluirPropiedades = null,
             bool isTracking = true
             );
 
-        Task <T> obtenerPrimero(
+        Task <T> ObtenerPrimero(
             Expression<Func<T, bool>> filtro = null,
             string incluirPropiedades = null,
             bool isTracking = true

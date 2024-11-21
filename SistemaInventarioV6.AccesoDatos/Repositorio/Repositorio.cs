@@ -25,12 +25,12 @@ namespace SistemaInventarioV6.AccesoDatos.Repositorio
             await dbSet.AddAsync(entidad);  //insert into table
         }
 
-        public async Task<T> obtener(int id)
+        public async Task<T> Obtener(int id)
         {
             return await dbSet.FindAsync(id);  //select * from (solo por Id)
         }
 
-        public async Task<T> obtenerPrimero(Expression<Func<T, bool>> filtro = null, string incluirPropiedades = null, bool isTracking = true)
+        public async Task<T> ObtenerPrimero(Expression<Func<T, bool>> filtro = null, string incluirPropiedades = null, bool isTracking = true)
         {
             IQueryable<T> query = dbSet;
             if (filtro != null)
@@ -54,7 +54,7 @@ namespace SistemaInventarioV6.AccesoDatos.Repositorio
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<T>> obtenerTodos(Expression<Func<T, bool>> filtro = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string incluirPropiedades = null, bool isTracking = true)
+        public async Task<IEnumerable<T>> ObtenerTodos(Expression<Func<T, bool>> filtro = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string incluirPropiedades = null, bool isTracking = true)
         {
             IQueryable<T> query = dbSet;
             if(filtro != null)
