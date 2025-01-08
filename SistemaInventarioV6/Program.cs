@@ -15,8 +15,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentity<IdentityUser , IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddErrorDescriber<ErrorDescriber>()  //se agrega personalización de mensajes cuando no cumpla requisitos de password
     .AddDefaultTokenProviders()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+//cambiando la politica de passwords
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;  //contraseña no requiere números
+    options.Password.RequireLowercase = true; //contraseña requiere letras minusculas
+    options.Password.RequireUppercase = false; //contraseña no requiere letras mayúsuclas
+    options.Password.RequireNonAlphanumeric = false;  //contraseña no requiere caracteres especiales
+    options.Password.RequiredLength = 6;  //contraseña requiere 6 caracteres como mínimo
+    options.Password.RequiredUniqueChars = 1;   //contraseña solo puede repetir 1 vez un mismo caracter
+});
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 //agregar como servicio a la unidad de trabajo para que cargue sus repositorios
