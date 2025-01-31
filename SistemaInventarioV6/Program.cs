@@ -19,6 +19,13 @@ builder.Services.AddIdentity<IdentityUser , IdentityRole>(options => options.Sig
     .AddDefaultTokenProviders()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = $"/Identity/Account/Login";
+    options.LogoutPath = $"/Identity/Account/Logout";
+    options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+});
+
 //cambiando la politica de passwords
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -59,8 +66,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication();   //habilitar autenticacion de usuarios
+app.UseAuthorization();     //habilitar autorizacion de partes del site a usuarios autenticados
 
 app.MapControllerRoute(
     name: "default",

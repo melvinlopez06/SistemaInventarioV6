@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaInventarioV6.AccesoDatos.Data;
 using SistemaInventarioV6.AccesoDatos.Repositorio.IRepositorio;
+using SistemaInventarioV6.Utilidades;
 
 namespace SistemaInventarioV6.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = DS.Role_Admin)]   //obligar a que el usuario se autentique y que sea admin
     public class UsuarioController : Controller
     {
         private readonly IUnidadTrabajo _unidadTrabajo;

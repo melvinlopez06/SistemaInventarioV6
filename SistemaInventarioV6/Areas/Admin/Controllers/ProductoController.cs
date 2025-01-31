@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaInventarioV6.AccesoDatos.Repositorio.IRepositorio;
 using SistemaInventarioV6.Modelos;
 using SistemaInventarioV6.Modelos.ViewModels;
@@ -8,6 +9,7 @@ namespace SistemaInventarioV6.Areas.Admin.Controllers
 {
     //especificar el area de trabajo para que el routing funcione
     [Area("Admin")]
+    [Authorize(Roles = DS.Role_Admin + "," + DS.Role_Inventario)]   //obligar a que el usuario se autentique y que sea admin o inventario
     public class ProductoController : Controller
     {
         //referenciar a la unidad de trabajo
