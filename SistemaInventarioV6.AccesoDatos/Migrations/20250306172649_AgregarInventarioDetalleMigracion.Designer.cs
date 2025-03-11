@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SistemaInventarioV6.AccesoDatos.Data;
 
@@ -11,9 +12,10 @@ using SistemaInventarioV6.AccesoDatos.Data;
 namespace SistemaInventarioV6.AccesoDatos.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250306172649_AgregarInventarioDetalleMigracion")]
+    partial class AgregarInventarioDetalleMigracion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,57 +368,6 @@ namespace SistemaInventarioV6.AccesoDatos.Migrations
                     b.ToTable("InventarioDetalles");
                 });
 
-            modelBuilder.Entity("SistemaInventarioV6.Modelos.KardexInventario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("BodegaProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int");
-
-                    b.Property<double>("Costo")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Detalle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("FechaRegistro")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StockAnterior")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<double>("Total")
-                        .HasColumnType("float");
-
-                    b.Property<string>("UsuarioAplicacionId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BodegaProductoId");
-
-                    b.HasIndex("UsuarioAplicacionId");
-
-                    b.ToTable("KardexInventarios");
-                });
-
             modelBuilder.Entity("SistemaInventarioV6.Modelos.Marca", b =>
                 {
                     b.Property<int>("Id")
@@ -631,25 +582,6 @@ namespace SistemaInventarioV6.AccesoDatos.Migrations
                     b.Navigation("Inventario");
 
                     b.Navigation("Producto");
-                });
-
-            modelBuilder.Entity("SistemaInventarioV6.Modelos.KardexInventario", b =>
-                {
-                    b.HasOne("SistemaInventarioV6.Modelos.BodegaProducto", "BodegaProducto")
-                        .WithMany()
-                        .HasForeignKey("BodegaProductoId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("SistemaInventarioV6.Modelos.UsuarioAplicacion", "UsuarioAplicacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioAplicacionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("BodegaProducto");
-
-                    b.Navigation("UsuarioAplicacion");
                 });
 
             modelBuilder.Entity("SistemaInventarioV6.Modelos.Producto", b =>
