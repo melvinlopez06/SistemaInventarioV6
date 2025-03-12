@@ -74,4 +74,8 @@ app.MapControllerRoute(
     pattern: "{area=Inventario}/{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
+//variable de entorno para los ejecutables de Rotativa
+IWebHostEnvironment env = app.Environment;
+Rotativa.AspNetCore.RotativaConfiguration.Setup(env.WebRootPath, "..\\Rotativa\\Windows\\");
+
 app.Run();
