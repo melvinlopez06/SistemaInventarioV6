@@ -26,6 +26,8 @@ namespace SistemaInventarioV6.AccesoDatos.Repositorio.IRepositorio
 
         IKardexInventarioRepositorio KardexInventario { get; }
 
+        ICompaniaRepositorio Compania { get; }
+
 
         Task Guardar();
     }
