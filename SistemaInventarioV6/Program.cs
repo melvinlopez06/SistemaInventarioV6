@@ -47,6 +47,14 @@ builder.Services.AddRazorPages();
 //agregar el servicio de email sender
 builder.Services.AddSingleton<IEmailSender , EmailSender>();
 
+//sesion del carro de compra
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);  //validez de 30 minutos
+    options.Cookie.HttpOnly = true;   //cookie http requerida y esencial
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -65,6 +73,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();  //usar sesion
 
 app.UseAuthentication();   //habilitar autenticacion de usuarios
 app.UseAuthorization();     //habilitar autorizacion de partes del site a usuarios autenticados

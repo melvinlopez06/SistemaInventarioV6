@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SistemaInventarioV6.AccesoDatos.Repositorio.IRepositorio;
+using SistemaInventarioV6.Utilidades;
 
 namespace SistemaInventarioV6.Areas.Identity.Pages.Account
 {
@@ -21,11 +23,13 @@ namespace SistemaInventarioV6.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IUnidadTrabajo _unidadTrabajo;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger , IUnidadTrabajo unidadTrabajo)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _unidadTrabajo = unidadTrabajo;
         }
 
         /// <summary>
@@ -114,6 +118,10 @@ namespace SistemaInventarioV6.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    var usuario = await _unidadTrabajo.UsuarioAplicacion.ObtenerPrimero(u => u.UserName == Input.Email);  //capturando usuario según el email que viene en el login
+                    var carroLista = await _unidadTrabajo.CarroCompra.ObtenerTodos(c => c.UsuarioAplicacionId == usuario.Id);  //obtener el carro de compra de BD segun el usuario logueado
+                    var numeroProductos = carroLista.Count();
+                    HttpContext.Session.SetInt32(DS.ssCarroCompras, numeroProductos);  //asignar a la variable de sesion el numero de productos del carro de compras
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }

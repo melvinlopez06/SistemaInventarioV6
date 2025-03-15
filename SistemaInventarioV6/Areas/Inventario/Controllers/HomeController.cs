@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaInventarioV6.AccesoDatos.Repositorio.IRepositorio;
 using SistemaInventarioV6.Modelos;
 using SistemaInventarioV6.Modelos.Especificaciones;
 using SistemaInventarioV6.Modelos.ViewModels;
+using SistemaInventarioV6.Utilidades;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace SistemaInventarioV6.Areas.Inventario.Controllers
 {
@@ -12,6 +15,7 @@ namespace SistemaInventarioV6.Areas.Inventario.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IUnidadTrabajo _unidadTrabajo;
+        public CarroCompraVM carroCompraVM { get; set; }
 
         public HomeController(ILogger<HomeController> logger , IUnidadTrabajo unidadTrabajo)
         {
@@ -19,10 +23,24 @@ namespace SistemaInventarioV6.Areas.Inventario.Controllers
             _unidadTrabajo = unidadTrabajo;
         }
 
-        public IActionResult Index(int pageNumber = 1 , string busqueda = "" , string busquedaActual= "")
+        public async Task<IActionResult> Index(int pageNumber = 1 , string busqueda = "" , string busquedaActual= "")
         {
+            //Controlar la sesión
+                //obteniendo el usuario que esta en sesion
+            var claimIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            if(claim != null)
+            {
+                //obtener la lista del carro de compra desde la BD para el usuario en sesion
+                var carroLista = await _unidadTrabajo.CarroCompra.ObtenerTodos(
+                        c => c.UsuarioAplicacionId == claim.Value
+                );
+                var numeroProductos = carroLista.Count();  // Numero de Registros en el carro
+                HttpContext.Session.SetInt32(DS.ssCarroCompras, numeroProductos);
+            }
+
             //Validar que la busqueda no sea nula
-            if( !String.IsNullOrEmpty(busqueda))
+            if ( !String.IsNullOrEmpty(busqueda))
             {
                 pageNumber = 1;   //al buscar algo siempre se carga pagina 1
             } else
@@ -37,7 +55,7 @@ namespace SistemaInventarioV6.Areas.Inventario.Controllers
             Parametros parametros = new Parametros()
             {
                 PageNumber = pageNumber,
-                PageSize = 4
+                PageSize = 10
             };
 
             var resultado = _unidadTrabajo.Producto.ObtenerTodosPaginado(parametros);
@@ -62,6 +80,74 @@ namespace SistemaInventarioV6.Areas.Inventario.Controllers
             if(resultado.MetaData.TotalPages <= pageNumber ) { ViewData["Siguiente"] = "disabled"; }
 
             return View(resultado);
+        }
+
+        public async Task<IActionResult> Detalle (int id)
+        {
+            carroCompraVM = new CarroCompraVM();   //instanciar el VM
+            carroCompraVM.Compania = await _unidadTrabajo.Compania.ObtenerPrimero();    //consultar la compañia
+            carroCompraVM.Producto = await _unidadTrabajo.Producto.ObtenerPrimero(p => p.Id == id ,
+                        incluirPropiedades: "Marca,Categoria");     //Obtener el producto y su respectiva marca y categoria asociados
+            var bodegaProducto = await _unidadTrabajo.BodegaProducto.ObtenerPrimero(
+                    b => b.ProductoId == id &&
+                    b.BodegaId == carroCompraVM.Compania.BodegaVentaId);  //obtener el stock de la bodega de venta del producto respectivo
+
+            if(bodegaProducto == null)  //no devuelve registro, significa stock 0
+            {
+                carroCompraVM.Stock = 0;
+            }
+            else
+            {
+                carroCompraVM.Stock = bodegaProducto.Cantidad;  //stock es la cantidad que hay en bodega
+            }
+
+            carroCompraVM.CarroCompra = new CarroCompra()   //se crea un carro compra con los datos encontrados de producto
+            {
+                Producto = carroCompraVM.Producto,
+                ProductoId = carroCompraVM.Producto.Id
+            };
+
+            return View(carroCompraVM);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Detalle(CarroCompraVM carroCompraVM)
+        {
+            //obteniendo el usuario que esta en sesion
+            var claimIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            carroCompraVM.CarroCompra.UsuarioAplicacionId = claim.Value;
+
+            //validando si el usuario ya tiene un carroCompra en la BD
+            CarroCompra carroBD = await _unidadTrabajo.CarroCompra.ObtenerPrimero(
+                    c => c.UsuarioAplicacionId == claim.Value &&
+                    c.ProductoId == carroCompraVM.CarroCompra.ProductoId);
+
+            if (carroBD == null)  // no encontro un registro para ese usuario y producto en la tabla CarroCompra
+            {
+                await _unidadTrabajo.CarroCompra.Agregar(carroCompraVM.CarroCompra);
+            }
+            else
+            {
+                //hay un registro en la BD del carroCompra, solo se actualiza aumentando las cantidades
+                carroBD.Cantidad += carroCompraVM.CarroCompra.Cantidad;
+                _unidadTrabajo.CarroCompra.Actualizar(carroBD);
+            }
+            await _unidadTrabajo.Guardar();
+            TempData[DS.Exitosa] = "Producto agregado al Carro de Compras";  //mensaje de exito
+
+            // Agregar valor a la Sesion
+            //obtener la lista del carro de compra desde la BD para el usuario en sesion
+            var carroLista = await _unidadTrabajo.CarroCompra.ObtenerTodos(
+                    c => c.UsuarioAplicacionId == claim.Value
+            );
+            var numeroProductos = carroLista.Count();  // Numero de Registros en el carro
+            HttpContext.Session.SetInt32(DS.ssCarroCompras, numeroProductos);
+
+            return RedirectToAction("Index");
+
         }
 
         public IActionResult Privacy()
